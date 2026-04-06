@@ -1,0 +1,19 @@
+##### Task 1: What is Offensive Security?
+1. Which of the following options better represents the process where you simulate a hacker's actions to find vulnerabilities in a system?  
+	- Offensive Security
+- ---
+##### Task 2: Hacking your first machine
+1. Above your account balance, you should now see a message indicating the answer to this question. Can you find the answer you need?
+	1. Open terminal, run `gobuster` to find hidden pages
+		- `gobuster -u http://fakebank.thm -w wordlist.txt dir`
+		- `-u`: Target URL, `-w`: Wordlist used
+		- ![[2026-04-06 07_18_23_edit.png]]
+	2. Visit `/bank-transfer` in browser and send the money
+		- ![[2026-04-06 07_19_56_edit.png]]
+	3. After transfer confirmed successful, return to account page to obtain the flag
+		- ![[2026-04-06 07_21_33_edit.png]]
+		- ![[2026-04-06 07_23_36_edit.png]]
+---
+##### Task 3: Careers in cyber security
+1. Read the above, and continue with the next room!?
+	- No answer needed
