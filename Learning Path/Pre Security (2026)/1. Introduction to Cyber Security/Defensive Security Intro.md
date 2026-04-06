@@ -1,0 +1,29 @@
+##### Link: [Defensive Security Intro](https://tryhackme.com/room/defensivesecurityintro)
+---
+##### Task 1: Introduction to Defensive Security
+1. Which team focuses on defensive security?
+	- `Blue Team`
+---
+##### Task 2: Areas of Defensive Security
+1. What would you call a team of cyber security professionals that monitors a network and its systems for malicious events?
+	- `Security Operations Center`
+2. What does DFIR stand for?
+	- `Digital Forensics and Incident Response`
+3. Which kind of malware requires the user to pay money to regain access to their files?
+	- `ransomware`
+---
+##### Task 3: Practical Example of Defensive Security
+1. What is the flag that you obtained by following along?
+	- Find malicious IP
+		- ![](../../../Attachment/2026-04-06_14-41-49%201.png)
+	- Run scanner on it
+		- ![](../../../Attachment/2026-04-06_14-42-28.png)
+	- IP is confirmed as malicious, click `Next`
+		- ![](../../../Attachment/2026-04-06_14-42-41.png)
+	- Report to SOC Team Lead
+		- ![](../../../Attachment/2026-04-06_14-42-52.png)
+	- Block malicious IP 
+		- ![](../../../Attachment/2026-04-06_14-47-32.png)
+	- Obtain flag
+		- ![](../../../Attachment/2026-04-06_14-47-40.png)
+	- Flag: `THM{THREAT-BLOCKED}`
