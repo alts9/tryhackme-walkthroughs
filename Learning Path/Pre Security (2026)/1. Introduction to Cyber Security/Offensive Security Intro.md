@@ -7,12 +7,12 @@
 	1. Open terminal, run `gobuster` to find hidden pages
 		- `gobuster -u http://fakebank.thm -w wordlist.txt dir`
 		- `-u`: Target URL, `-w`: Wordlist used
-		- ![[2026-04-06 07_18_23_edit.png]]
+		- ![](../../../Attachment/2026-04-06_07-18-23_edit.png)
 	2. Visit `/bank-transfer` in browser and send the money
-		- ![[2026-04-06 07_19_56_edit.png]]
+		- ![](../../../Attachment/2026-04-06_07-19-56_edit.png)
 	3. After transfer confirmed successful, return to account page to obtain the flag
-		- ![[2026-04-06 07_21_33_edit.png]]
-		- ![[2026-04-06 07_23_36_edit.png]]
+		- ![](../../../Attachment/2026-04-06_07-21-33_edit.png)
+		- ![](../../../Attachment/2026-04-06_07-23-36_edit.png)
 ---
 ##### Task 3: Careers in cyber security
 1. Read the above, and continue with the next room!?
