@@ -1,0 +1,85 @@
+##### Link: [RootMe | Tryhackme](https://tryhackme.com/room/rrootme)
+##### Link: [Summary Section](#Summary)
+
+---
+##### 1. Identify Running Service
+- Run `Nmap` on all ports, followed by deeper scans on identified services
+	- `sudo nmap -p- 10.48.133.197`
+		- ![](../Challenge%20Attachment/Root%20Me/2026-05-16_03-08-27_edit.png)
+	- `nmap -sC -sV -p 22,80 10.48.133.197`
+		- ![](../Challenge%20Attachment/Root%20Me/2026-05-16_03-08-54_edit.png)
+- We proceed with service enumeration
+##### 2. Service Enumeration
+- **HTTP Enumeration**
+	- Among identified services, the one we can enumerate without credential is `HTTP`
+	- Open target in browser, we find a text‑only webpage
+		- ![](../Challenge%20Attachment/Root%20Me/2026-05-16_07-47-30_edit.png)
+	- Nothing can be used as attack vector, so we try to find hidden content
+- **Content Discovery**    
+    - We use `ffuf` for this
+	    - `ffuf -w /usr/share/wordlists/seclists/Discovery/Web-Content/common.txt -u http://10.48.133.197/FUZZ`
+		    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_07-49-03_edit.png)
+    - Among the results, the interesting ones are `/panel` and `/uploads`        
+- **Analyzing Hidden Pages**    
+    - `/panel` contains a file upload form while `/upload` is where uploaded files are stored. We can see the cat image I recently uploaded.
+	    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_07-50-30_edit.png)
+	    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_07-51-30_edit.png)
+	    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_07-53-20_edit.png)
+	    - 
+    - `O arquivo foi upado com sucesso!` means `The file was uploaded successfully!`
+    - If this feature has weak protection, it can be exploited to gain reverse shell
+##### 3. Gain Access
+- **Preparation**    
+    - From `ffuf`, we know target use PHP, so we will use `PentestMonkey`’s PHP reverse shell
+    - Modify and replace its IP with your `tun0` IP and port with the port our listener will use
+	    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_07-56-44_edit.png)
+    - Reverse shell means we make target connect back to us, so we need to run a listener on the port we specified earlier using `netcat`
+	    - `nc -nvlp 4444`
+			- ![](../Challenge%20Attachment/Root%20Me/2026-05-16_07-59-03_edit.png)
+- **Upload**    
+    - Try uploading the file, we get error `PHP não é permitido!` which translates to `PHP is not allowed!`
+	    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_08-00-23_edit.png)
+    - After testing, I discovered the upload filter can be bypassed by changing the file extension to `.php5`, which is another PHP extension recognized by the server
+	    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_08-02-21_edit.png)
+    - Now go to `/upload` and click on the file to execute it.        
+	    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_08-04-52_edit.png)
+    - Back to listener, we get reverse shell
+	    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_08-05-56_edit.png)
+- **Upgrading Shell**
+	- Right now our current shell is still limited, we can upgrade it to get a functional one
+		- `python3 -c 'import pty; pty.spawn("/bin/bash")'`
+			- ![](../Challenge%20Attachment/Root%20Me/2026-05-16_08-06-36_edit.png)
+	- It’s working, and we can see we gained access as `www‑data`
+- **Obtain User Flag**
+	- Home directory for the service account is `/var/www`, let’s check it
+		- `ls /var/www`
+		- `cat /var/www/user.txt`
+			- ![](../Challenge%20Attachment/Root%20Me/2026-05-16_08-59-22_edit.png)
+	- We obtain the user flag, now we continue with privilege escalation.
+##### 4. Privilege Escalation
+- **Identify Attack Vector**
+	- Without a password, we can’t check sudo privileges. I also checked the user’s home directory and found nothing useful
+	- Another method is to find files with SUID
+	- SUID is a special file permission that allows other users to execute the file with the owner’s privilege.. Files with root SUID will be executed with root privilege.
+- **Find Files with SUID**
+    - We use `find`command to search recursively from root directory for files with SUID permission set, while hiding error messages
+	    - `find / -perm -4000 -type f 2>/dev/null`
+		    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_09-03-30_edit.png)
+    - We get some results, to find which can be exploited, we check `GTFOBins`.
+	    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_09-04-52_edit.png)
+	    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_09-05-42_edit.png)
+    - It shows Python can be used, let’s confirm it is owned by root and the SUID bit is set.
+	    - `ls -al /usr/bin/python2.7`
+		    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_09-11-47_edit.png)
+- **Exploit SUID**
+    - Run the provided command
+	    - `python -c 'import os; os.execl("/bin/sh", "sh", "-p")'`
+    - We gain access as root
+    - Now obtain the root flag and we’re done
+	    - `cat /root/root.txt`
+		    - ![](../Challenge%20Attachment/Root%20Me/2026-05-16_09-12-21_edit.png)
+---
+##### Summary 
+- Use `Nmap` to find web server
+- Find vulnerable upload functionality and exploit it to gain reverse shell
+- Escalate privilege by exploiting `SUID`
