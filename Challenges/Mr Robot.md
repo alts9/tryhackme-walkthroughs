@@ -1,0 +1,63 @@
+##### Link: [Mr Robot | Tryhackme](https://tryhackme.com/room/mrrobot)
+##### Link: [Summary Section](#Summary)
+---
+##### 1. Identify Running Service
+- Run `Nmap` on all ports, followed by deeper scans on identified services
+	- `sudo nmap -p- 10.48.168.179`
+	- `nmap -sC -sV -p 22,80,443 10.48.168.179`
+- We proceed with service enumeration
+##### 2. Service Enumeration
+- Manual Enumeration
+	- Among identified services, the ones we can enumerate without credentials are `HTTP` and `HTTPS`
+	- Visiting both in the browser leads to the same website, so we only need to enumerate one of them.
+	- It runs a web-based terminal with limited functionality.
+	- Trying `whoami` doesn’t work, instead, it prompts us to use only the available commands.
+	- Testing available commands triggers actions like opening pages, playing videos, or running scripts, but none reveal an attack vector.
+	- We can come back later to test command injection; for now, we focus on finding other pages.
+- **Content Discovery**
+	- We use `ffuf` for this
+		- `ffuf -w /usr/share/wordlists/seclists/Discovery/Web-Content/common.txt -u http://10.48.168.179/FUZZ`
+	- We get a lot of results, including various paths indicating the target is using WordPress
+	- Let’s review `robots.txt`
+- **`/robots.txt`**
+	- Visiting `robots.txt`, we find the first key and `fsocity.dic`, which seems to be a password wordlist
+	- Finding the WordPress login and wordlist hints at WordPress brute force
+	- Now we review the wordlist
+- **Review wordlist**
+	- Download the file and check its length
+		- `wget http://10.48.168.179/fsocity.dic`
+		- `wc -l fsocity.dic`
+	- It has over 850K lines, which makes brute force difficult
+	- A common trick in CTF is to include many duplicates to hinder attackers. Let’s see how many lines remain after removing duplicates
+		- `sort fsocity.dic | uniq > fsocity.dic_sorted`
+		- `wc -l fsocity.dic_sorted `
+	- It only has 11K entries
+	- We have password list, let’s proceed with username enumeration
+- **Username Enumeration**
+	- We use `wpscan` for but get no result
+		- `wpscan --url http://10.48.168.179/ -e u`
+	- We try manual enumeration viw browser
+	- Trying `admin:admin` we get response `Invalid username`, we can use this to enumerate valid username
+	- Trying common username: `administrator`, `root`, `webmaster`, `user`, `test` etc none of them works
+	- Because this room is inspired by mr robot series, lets try character name from this series: `ElliotAlderson`, `Elliot`, `Alderson`, `Robot`, `Darlene`, etc
+	- Useing Elliot as username, we get wrong password respons, idnicating the username valid
+	- We can continue with wordpress rbute force
+- **Wordpress Bruteforce**
+	- We use wpscan
+		- `wpscan --url http://10.48.168.179/ -t 50 -U elliot -P ./fsocity.dic_sorted`
+	- We get valid credential: elliot:ER28-0652 
+	- Afte login and go to user s panel, we can see we gain access as administrator
+	- We ca exploit this to gain rverse shell on target host
+##### 3. Gain Access
+- **Modify Theme**
+	- We will modify one of the theme and replce the content with php reverse shell script
+	- In this case, i will use 404 page of twenty fifteen tempalte whci acesible form themes → Editor
+	- Relace the content with pentest monkey’s php reverse shell
+	- Dont forget to replcae ip with your tun0 ip and port with our listener will use, then clck udpate file
+- **Obtain Reverse Shell**
+	- Reverse shell means we make target connect back to us, so we need to run a listener on the port we specified earlier using `netcat`
+		- nc -nvlp 4444`
+	- Thenw e execute the script by acesing the file via browser, in this case, it will be `http://10.48.168.179/wp-content/themes/twentyfifteen/404.php`
+	- Nothign will be shown in browser, but cheign lsitenre, we ge reverse shell
+	- Sehll we get are limited, to make it m,ore functional, we can use comand below (assume pytohn installed)
+	- We
